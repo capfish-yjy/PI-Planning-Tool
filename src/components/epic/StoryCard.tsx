@@ -99,15 +99,15 @@ export const StoryCard = ({
           <GripVertical size={isCompact ? 14 : 16} className={disabled || !isDraggable ? 'text-slate-300' : 'text-slate-400'} />
         </span>
         <div className="min-w-0 flex-1">
-          <div className={`flex items-center justify-between ${isCompact ? 'gap-1' : 'gap-2'}`}>
+          <div className={`flex flex-wrap items-center ${isCompact ? 'gap-1' : 'gap-2'}`}>
             <span
-              className="cursor-pointer font-mono text-xs font-semibold text-slate-700 underline-offset-2 hover:underline"
+              className="min-w-0 cursor-pointer font-mono text-xs font-semibold text-slate-700 underline-offset-2 hover:underline"
               onDoubleClick={openStoryInJira}
               title="Double-click to open in Jira"
             >
               {story.key}
             </span>
-            <div className={`flex items-center ${isCompact ? 'gap-0.5' : 'gap-1'}`}>
+            <div className={`ml-auto flex shrink-0 items-center ${isCompact ? 'gap-0.5' : 'gap-1'}`}>
               <span className={`rounded bg-slate-100 text-xs text-slate-700 ${isCompact ? 'px-1.5 py-0' : 'px-2 py-0.5'}`}>
                 {story.storyPoints ?? 'No estimate'}
               </span>

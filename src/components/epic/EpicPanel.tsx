@@ -96,7 +96,7 @@ export const EpicPanel = () => {
   return (
     <section
       ref={setNodeRef}
-      className={`min-h-0 overflow-auto border-r border-slate-200 bg-slate-50 p-3 ${isOver ? 'ring-2 ring-slate-400' : ''}`}
+      className={`min-h-0 flex-1 overflow-auto border-r border-slate-200 bg-slate-50 p-3 ${isOver ? 'ring-2 ring-slate-400' : ''}`}
     >
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-600">Epic Backlog</h2>
@@ -123,65 +123,63 @@ export const EpicPanel = () => {
                 title={`${epic.key} Note`}
               />
               <div className="grid gap-1.5">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <IconButton
-                        aria-label={`${isCollapsed ? 'Expand' : 'Collapse'} ${epic.key}`}
-                        className="h-7 w-7"
-                        onClick={() => toggleEpic(epic.key)}
-                        icon={isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
-                      />
-                      <h3
-                        className="cursor-pointer font-mono text-sm font-semibold text-slate-900 underline-offset-2 hover:underline"
-                        onDoubleClick={() => openEpicInJira(epic.key)}
-                        title="Double-click to open in Jira"
-                      >
-                        {epic.key}
-                      </h3>
-                      {isComplete ? (
-                        <span className="rounded bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800">
-                          Complete
-                        </span>
-                      ) : null}
-                      <IconButton
-                        aria-label={`Show description for ${epic.key}`}
-                        className="h-7 w-7"
-                        onClick={() => setDescriptionEpicKey(isDescriptionOpen ? null : epic.key)}
-                        icon={<Info size={16} />}
-                      />
-                      <IconButton
-                        aria-label={`${hasNote ? 'Edit' : 'Add'} note for ${epic.key}`}
-                        className={`h-7 w-7 ${
-                          hasNote ? 'border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100' : ''
-                        }`}
-                        onClick={() => setNoteEpicKey(isNoteOpen ? null : epic.key)}
-                        icon={<NoteIcon hasNote={hasNote} />}
-                      />
-                      <IconButton
-                        aria-label={`Refresh ${epic.key}`}
-                        className="h-7 w-7"
-                        disabled={isRefreshing}
-                        onClick={() => refreshEpic(epic.key)}
-                        icon={<RotateCw size={16} className={isRefreshing ? 'animate-spin' : ''} />}
-                      />
-                      <IconButton
-                        aria-label={`Remove ${epic.key}`}
-                        className="h-7 w-7"
-                        variant="danger"
-                        onClick={() => deleteEpic(epic.key)}
-                        icon={<Trash2 size={16} />}
-                      />
-                    </div>
-                    <p
-                      className="cursor-pointer overflow-hidden text-xs leading-4 text-slate-700 underline-offset-2 hover:underline [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]"
+                <div className="grid gap-1.5">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <IconButton
+                      aria-label={`${isCollapsed ? 'Expand' : 'Collapse'} ${epic.key}`}
+                      className="h-7 w-7"
+                      onClick={() => toggleEpic(epic.key)}
+                      icon={isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+                    />
+                    <h3
+                      className="min-w-0 cursor-pointer font-mono text-sm font-semibold text-slate-900 underline-offset-2 hover:underline"
                       onDoubleClick={() => openEpicInJira(epic.key)}
                       title="Double-click to open in Jira"
                     >
-                      {epic.summary}
-                    </p>
+                      {epic.key}
+                    </h3>
+                    {isComplete ? (
+                      <span className="rounded bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800">
+                        Complete
+                      </span>
+                    ) : null}
+                    <IconButton
+                      aria-label={`Show description for ${epic.key}`}
+                      className="h-7 w-7"
+                      onClick={() => setDescriptionEpicKey(isDescriptionOpen ? null : epic.key)}
+                      icon={<Info size={16} />}
+                    />
+                    <IconButton
+                      aria-label={`${hasNote ? 'Edit' : 'Add'} note for ${epic.key}`}
+                      className={`h-7 w-7 ${
+                        hasNote ? 'border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100' : ''
+                      }`}
+                      onClick={() => setNoteEpicKey(isNoteOpen ? null : epic.key)}
+                      icon={<NoteIcon hasNote={hasNote} />}
+                    />
+                    <IconButton
+                      aria-label={`Refresh ${epic.key}`}
+                      className="h-7 w-7"
+                      disabled={isRefreshing}
+                      onClick={() => refreshEpic(epic.key)}
+                      icon={<RotateCw size={16} className={isRefreshing ? 'animate-spin' : ''} />}
+                    />
+                    <IconButton
+                      aria-label={`Remove ${epic.key}`}
+                      className="h-7 w-7"
+                      variant="danger"
+                      onClick={() => deleteEpic(epic.key)}
+                      icon={<Trash2 size={16} />}
+                    />
+                    <span className="ml-auto text-xs text-slate-500">{backlogStories.length}/{epic.stories.length} backlog</span>
                   </div>
-                  <span className="text-xs text-slate-500">{backlogStories.length}/{epic.stories.length} backlog</span>
+                  <p
+                    className="cursor-pointer overflow-hidden text-xs leading-4 text-slate-700 underline-offset-2 hover:underline [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]"
+                    onDoubleClick={() => openEpicInJira(epic.key)}
+                    title="Double-click to open in Jira"
+                  >
+                    {epic.summary}
+                  </p>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <label className="grid gap-1 text-xs font-medium text-slate-600">
