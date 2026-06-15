@@ -1,6 +1,6 @@
 import { useState, type ChangeEvent } from 'react'
 import { useDroppable } from '@dnd-kit/core'
-import { ChevronDown, ChevronRight, Info, RotateCw } from 'lucide-react'
+import { ChevronDown, ChevronRight, Info, RotateCw, Trash2 } from 'lucide-react'
 import { electronApi } from '../../api/electronApi'
 import { commitmentOptions, usePlanStore } from '../../stores/planStore'
 import { getEpicPlanningColor, isEpicFullyPlanned, sortEpicsByPriority } from '../../domain/planningRules'
@@ -18,7 +18,7 @@ const colorClasses = {
 }
 
 export const EpicPanel = () => {
-  const { plan, configPath, importEpics, updateEpic, updateEpicNote } = usePlanStore()
+  const { plan, configPath, importEpics, updateEpic, removeEpic, updateEpicNote } = usePlanStore()
   const { setMessage, setError } = useUiStore()
   const { setNodeRef, isOver } = useDroppable({ id: 'backlog' })
   const sortedEpics = sortEpicsByPriority(plan.epics)
@@ -68,6 +68,29 @@ export const EpicPanel = () => {
     } catch (error) {
       setError(error instanceof Error ? error.message : `Unable to open ${epicKey}.`)
     }
+  }
+
+  const deleteEpic = (epicKey: string) => {
+    const epic = plan.epics.find((item) => item.key === epicKey)
+    const plannedStoryCount = epic?.stories.filter((story) => Boolean(plan.assignments[story.key])).length ?? 0
+    const suffix =
+      plannedStoryCount > 0
+        ? ` This will also remove ${plannedStoryCount} planned ${plannedStoryCount === 1 ? 'story' : 'stories'} from sprints.`
+        : ''
+
+    if (!window.confirm(`Remove ${epicKey} from this project?${suffix}`)) {
+      return
+    }
+
+    removeEpic(epicKey)
+    setDescriptionEpicKey((current) => (current === epicKey ? null : current))
+    setNoteEpicKey((current) => (current === epicKey ? null : current))
+    setCollapsedEpicKeys((current) => {
+      const next = new Set(current)
+      next.delete(epicKey)
+      return next
+    })
+    setMessage(`Removed ${epicKey}.`)
   }
 
   return (
@@ -141,6 +164,13 @@ export const EpicPanel = () => {
                         disabled={isRefreshing}
                         onClick={() => refreshEpic(epic.key)}
                         icon={<RotateCw size={16} className={isRefreshing ? 'animate-spin' : ''} />}
+                      />
+                      <IconButton
+                        aria-label={`Remove ${epic.key}`}
+                        className="h-7 w-7"
+                        variant="danger"
+                        onClick={() => deleteEpic(epic.key)}
+                        icon={<Trash2 size={16} />}
                       />
                     </div>
                     <p

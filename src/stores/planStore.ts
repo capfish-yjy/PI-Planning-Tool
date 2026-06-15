@@ -13,6 +13,7 @@ type PlanStore = {
   setProjectKey: (projectKey: string) => void
   importEpics: (projectKey: string, epics: Epic[]) => void
   updateEpic: (epicKey: string, update: Partial<Pick<Epic, 'commitment'>>) => void
+  removeEpic: (epicKey: string) => void
   updateEpicNote: (epicKey: string, note: string) => void
   updateStoryNote: (storyKey: string, note: string) => void
   addSprint: (sprint: Sprint) => void
@@ -89,6 +90,27 @@ export const usePlanStore = create<PlanStore>((set) => ({
         epics: state.plan.epics.map((epic) => (epic.key === epicKey ? { ...epic, ...update } : epic))
       })
     })),
+  removeEpic: (epicKey) =>
+    set((state) => {
+      const epicToRemove = state.plan.epics.find((epic) => epic.key === epicKey)
+      if (!epicToRemove) {
+        return state
+      }
+
+      const removedStoryKeys = new Set(epicToRemove.stories.map((story) => story.key))
+      const assignments = Object.fromEntries(
+        Object.entries(state.plan.assignments).filter(([storyKey]) => !removedStoryKeys.has(storyKey))
+      )
+
+      return {
+        plan: touchPlan({
+          ...state.plan,
+          epicIds: state.plan.epicIds.filter((key) => key !== epicKey),
+          epics: state.plan.epics.filter((epic) => epic.key !== epicKey),
+          assignments
+        })
+      }
+    }),
   updateEpicNote: (epicKey, note) =>
     set((state) => ({
       plan: touchPlan({
