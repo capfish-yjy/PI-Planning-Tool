@@ -1,3 +1,4 @@
+import { ProxyAgent, type Dispatcher } from 'undici'
 import type { Epic, IssueKey, JiraConfig, Story } from '../../../src/domain/planTypes'
 import type { FetchEpicsResult, JiraFieldMappings, RefreshIssuesResult } from '../../../src/domain/jiraTypes'
 import { loadConfig } from './configService'
@@ -21,11 +22,37 @@ type JiraSearchResult = {
 }
 
 const apiVersions = ['2', '3'] as const
+const JIRA_REQUEST_TIMEOUT_MS = 15_000
 
 const buildHeaders = (config: JiraConfig) => ({
   Authorization: `Bearer ${config.pat}`,
   Accept: 'application/json'
 })
+
+type FetchOptionsWithDispatcher = RequestInit & {
+  dispatcher?: Dispatcher
+}
+
+const getProxyDispatcher = (config: JiraConfig): Dispatcher | undefined => {
+  if (!config.proxy?.enabled) {
+    return undefined
+  }
+
+  const proxyUrl = config.proxy.url.trim()
+  if (!proxyUrl) {
+    throw new Error('Proxy URL is required when proxy is enabled.')
+  }
+
+  try {
+    const parsed = new URL(proxyUrl)
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      throw new Error('Unsupported proxy protocol.')
+    }
+    return new ProxyAgent(proxyUrl)
+  } catch {
+    throw new Error('Proxy URL is invalid.')
+  }
+}
 
 const getJiraBaseUrls = (hostUrl: string) => {
   const normalizedHost = hostUrl.replace(/\/$/, '')
@@ -39,16 +66,32 @@ const getJiraBaseUrls = (hostUrl: string) => {
 }
 
 const requestUrl = async <T>(config: JiraConfig, url: string): Promise<T> => {
-  const response = await fetch(url, {
+  const dispatcher = getProxyDispatcher(config)
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), JIRA_REQUEST_TIMEOUT_MS)
+  const fetchOptions: FetchOptionsWithDispatcher = {
     method: 'GET',
-    headers: buildHeaders(config)
-  })
-
-  if (!response.ok) {
-    throw new Error(`Jira GET ${url} failed with ${response.status}.`)
+    headers: buildHeaders(config),
+    dispatcher,
+    signal: controller.signal
   }
 
-  return (await response.json()) as T
+  try {
+    const response = await fetch(url, fetchOptions)
+
+    if (!response.ok) {
+      throw new Error(`Jira GET ${url} failed with ${response.status}.`)
+    }
+
+    return (await response.json()) as T
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Jira request timed out after 15 seconds. Check Jira host, proxy, VPN, or network access.')
+    }
+    throw error
+  } finally {
+    clearTimeout(timeoutId)
+  }
 }
 
 const requestWithFallback = async <T>(config: JiraConfig, path: string): Promise<T> => {

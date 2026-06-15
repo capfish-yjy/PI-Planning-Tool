@@ -14,6 +14,12 @@ const validateConfig = (value: unknown): JiraConfig => {
   return {
     jiraHostUrl: candidate.jiraHostUrl.replace(/\/$/, ''),
     pat: candidate.pat,
+    proxy: candidate.proxy
+      ? {
+          enabled: Boolean(candidate.proxy.enabled),
+          url: typeof candidate.proxy.url === 'string' ? candidate.proxy.url.trim() : ''
+        }
+      : undefined,
     fieldMappings: candidate.fieldMappings
   }
 }
