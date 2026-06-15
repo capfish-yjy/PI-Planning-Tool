@@ -133,7 +133,7 @@ export const SprintBoard = () => {
   }
 
   return (
-    <section className="min-w-0 overflow-auto bg-white p-4">
+    <section className="min-w-0 flex-1 overflow-auto bg-white p-4">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-600">PI Sprints</h2>
         <div className="flex gap-2">
