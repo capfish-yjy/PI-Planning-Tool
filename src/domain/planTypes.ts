@@ -48,6 +48,10 @@ export type Plan = {
 export type JiraConfig = {
   jiraHostUrl: string
   pat: string
+  proxy?: {
+    enabled: boolean
+    url: string
+  }
   fieldMappings?: {
     storyPointsFieldId?: string
     epicLinkFieldId?: string

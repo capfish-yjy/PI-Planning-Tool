@@ -21,6 +21,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@vitejs/plugin-react": "^4.6.0",
     "lucide-react": "^0.468.0",
+    "undici": "^7.28.0",
     "zustand": "^5.0.8"
   },
   "devDependencies": {
