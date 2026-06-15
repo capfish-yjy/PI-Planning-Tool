@@ -6,27 +6,17 @@ import { useUiStore } from '../../stores/uiStore'
 import { EpicPanel } from '../epic/EpicPanel'
 import { SprintBoard } from '../sprint/SprintBoard'
 
-const BACKLOG_WIDTH_STORAGE_KEY = 'piPlanning.backlogWidthPx'
 const DEFAULT_BACKLOG_WIDTH = 420
 const MIN_BACKLOG_WIDTH = 320
 const MAX_BACKLOG_WIDTH_RATIO = 0.55
 const MIN_SPRINT_BOARD_WIDTH = 560
 const KEYBOARD_RESIZE_STEP = 24
 
-const getStoredBacklogWidth = () => {
-  if (typeof window === 'undefined') {
-    return DEFAULT_BACKLOG_WIDTH
-  }
-
-  const stored = Number(window.localStorage.getItem(BACKLOG_WIDTH_STORAGE_KEY))
-  return Number.isFinite(stored) && stored > 0 ? stored : DEFAULT_BACKLOG_WIDTH
-}
-
 export const PlanningBoard = () => {
   const { assignStory, planFilePath } = usePlanStore()
   const { setError } = useUiStore()
   const containerRef = useRef<HTMLElement | null>(null)
-  const [backlogWidth, setBacklogWidth] = useState(getStoredBacklogWidth)
+  const [backlogWidth, setBacklogWidth] = useState(DEFAULT_BACKLOG_WIDTH)
   const [isResizing, setIsResizing] = useState(false)
 
   const clampBacklogWidth = (nextWidth: number) => {
@@ -43,10 +33,6 @@ export const PlanningBoard = () => {
 
   const updateBacklogWidth = (nextWidth: number) => {
     setBacklogWidth(clampBacklogWidth(nextWidth))
-  }
-
-  const saveBacklogWidth = (nextWidth: number) => {
-    window.localStorage.setItem(BACKLOG_WIDTH_STORAGE_KEY, String(Math.round(clampBacklogWidth(nextWidth))))
   }
 
   useEffect(() => {
@@ -110,13 +96,11 @@ export const PlanningBoard = () => {
     setIsResizing(false)
     document.body.classList.remove('select-none')
     setBacklogWidth(nextWidth)
-    saveBacklogWidth(nextWidth)
   }
 
   const handleResizePointerCancel = () => {
     setIsResizing(false)
     document.body.classList.remove('select-none')
-    saveBacklogWidth(backlogWidth)
   }
 
   const handleResizeKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
@@ -128,7 +112,6 @@ export const PlanningBoard = () => {
     const direction = event.key === 'ArrowLeft' ? -1 : 1
     const nextWidth = clampBacklogWidth(backlogWidth + direction * KEYBOARD_RESIZE_STEP)
     setBacklogWidth(nextWidth)
-    saveBacklogWidth(nextWidth)
   }
 
   return (
