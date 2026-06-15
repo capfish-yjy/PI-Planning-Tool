@@ -16,9 +16,9 @@ It can import Jira Epics and their child Stories/Tasks, arrange Stories into loc
 
 Download the correct file from GitHub Releases:
 
-- macOS Apple Silicon: `PI Planning Assistant-0.1.0-arm64.dmg`
-- macOS Intel: `PI Planning Assistant-0.1.0-x64.dmg`
-- Windows x64: `PI Planning Assistant-0.1.0.exe`
+- macOS Apple Silicon: `PI Planning Assistant-0.2.0-arm64.dmg`
+- macOS Intel: `PI Planning Assistant-0.2.0-x64.dmg`
+- Windows x64: `PI Planning Assistant-0.2.0.exe`
 
 The current builds are not code-signed or notarized. macOS Gatekeeper or Windows SmartScreen may ask for confirmation before opening the app.
 
@@ -71,11 +71,84 @@ node -v
 npm -v
 ```
 
-Install dependencies:
+Install dependencies.
+
+This project includes `package-lock.json`, so use `npm ci` to install the exact dependency versions. The `--verbose` flag is optional, but useful when diagnosing network or proxy problems.
+
+If your network does not require a proxy, run:
 
 ```bash
-npm install
+npm ci --verbose
 ```
+
+Only configure proxy settings if your network requires them to access npm or Electron downloads.
+
+### If Your Network Requires A Proxy
+
+There are two download paths to configure:
+
+- npm dependencies use npm proxy settings.
+- Electron runtime and electron-builder downloads use Electron download proxy environment variables.
+
+Windows Command Prompt:
+
+```cmd
+npm config set proxy http://your-company-proxy:8080
+npm config set https-proxy http://your-company-proxy:8080
+
+set ELECTRON_GET_USE_PROXY=1
+set GLOBAL_AGENT_HTTP_PROXY=http://your-company-proxy:8080
+set GLOBAL_AGENT_HTTPS_PROXY=http://your-company-proxy:8080
+
+npm ci --verbose
+```
+
+macOS Terminal:
+
+```bash
+npm config set proxy http://your-company-proxy:8080
+npm config set https-proxy http://your-company-proxy:8080
+
+export ELECTRON_GET_USE_PROXY=1
+export GLOBAL_AGENT_HTTP_PROXY=http://your-company-proxy:8080
+export GLOBAL_AGENT_HTTPS_PROXY=http://your-company-proxy:8080
+
+npm ci --verbose
+```
+
+If your proxy requires a username and password, use:
+
+```text
+http://username:password@your-company-proxy:8080
+```
+
+URL encode special characters in the username or password.
+
+To clear proxy settings later, use:
+
+Windows Command Prompt:
+
+```cmd
+npm config delete proxy
+npm config delete https-proxy
+
+set ELECTRON_GET_USE_PROXY=
+set GLOBAL_AGENT_HTTP_PROXY=
+set GLOBAL_AGENT_HTTPS_PROXY=
+```
+
+macOS Terminal:
+
+```bash
+npm config delete proxy
+npm config delete https-proxy
+
+unset ELECTRON_GET_USE_PROXY
+unset GLOBAL_AGENT_HTTP_PROXY
+unset GLOBAL_AGENT_HTTPS_PROXY
+```
+
+These command-line proxy settings are only for source install and build downloads. Jira runtime proxy is configured separately inside the app under Settings -> Proxy Settings.
 
 Run the desktop app in development mode:
 
