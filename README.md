@@ -29,6 +29,48 @@ Requirements:
 - Node.js 20 or newer
 - npm
 
+If you only run the downloaded release build, you do not need Node.js or npm. These requirements are only needed when running from source.
+
+### Install Requirements On Windows
+
+1. Open the Node.js website: <https://nodejs.org>
+2. Download the Windows Installer for the LTS version.
+3. Run the `.msi` installer and keep the default options.
+4. Make sure Node.js is added to `PATH`.
+5. Open a new PowerShell or Command Prompt and verify:
+
+```powershell
+node -v
+npm -v
+```
+
+### Install Requirements On macOS With Homebrew
+
+Install Node.js:
+
+```bash
+brew install node
+```
+
+Verify:
+
+```bash
+node -v
+npm -v
+```
+
+### Install Requirements On macOS Without Homebrew
+
+1. Open the Node.js website: <https://nodejs.org>
+2. Download the macOS Installer for the LTS version.
+3. Run the `.pkg` installer.
+4. Open a new Terminal and verify:
+
+```bash
+node -v
+npm -v
+```
+
 Install dependencies:
 
 ```bash
