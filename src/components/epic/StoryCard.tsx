@@ -83,9 +83,12 @@ export const StoryCard = ({
     <article
       ref={isDraggable ? setNodeRef : undefined}
       style={style}
-      className={`relative rounded-md border bg-white shadow-sm ${isCompact ? 'p-2' : 'p-3'} ${isDragging ? 'opacity-60' : ''} ${
+      className={`relative rounded-md border bg-white shadow-sm ${isCompact ? 'p-2' : 'p-3'} ${
+        isDraggable && !disabled ? 'cursor-grab active:cursor-grabbing' : ''
+      } ${isDragging ? 'opacity-60' : ''} ${
         disabled ? 'border-amber-300 bg-amber-50' : isPlanned ? 'border-sky-300 bg-sky-50' : 'border-slate-200'
       }`}
+      {...(isDraggable ? listeners : {})}
       {...(isDraggable ? attributes : {})}
     >
       <DescriptionPopover description={story.description} isOpen={isDescriptionOpen} onClose={() => setIsDescriptionOpen(false)} />
@@ -97,12 +100,7 @@ export const StoryCard = ({
         title={`${story.key} Note`}
       />
       <div tabIndex={0} className={`flex items-start outline-none ${isCompact ? 'gap-1.5' : 'gap-2'}`}>
-        <span
-          className={`flex shrink-0 items-center ${isDraggable && !disabled ? 'cursor-grab active:cursor-grabbing' : ''} ${
-            isCompact ? 'h-7' : 'h-8'
-          }`}
-          {...(isDraggable ? listeners : {})}
-        >
+        <span className={`flex shrink-0 items-center ${isCompact ? 'h-7' : 'h-8'}`}>
           <GripVertical size={isCompact ? 14 : 16} className={disabled || !isDraggable ? 'text-slate-300' : 'text-slate-400'} />
         </span>
         <div className="min-w-0 flex-1">
