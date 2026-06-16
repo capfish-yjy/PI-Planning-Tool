@@ -1,6 +1,6 @@
 import { useEffect, useState, type ChangeEvent } from 'react'
 import { useDroppable } from '@dnd-kit/core'
-import { ChevronDown, ChevronRight, Info, RotateCw, Trash2 } from 'lucide-react'
+import { ChevronDown, ChevronRight, ChevronsDownUp, ChevronsUpDown, Info, RotateCw, Trash2 } from 'lucide-react'
 import { electronApi } from '../../api/electronApi'
 import type { StoryFocusRequest } from '../../domain/focusTypes'
 import type { IssueKey } from '../../domain/planTypes'
@@ -30,6 +30,7 @@ export const EpicPanel = ({ focusRequest, onLocateSprintStory }: EpicPanelProps)
   const { setNodeRef, isOver } = useDroppable({ id: 'backlog' })
   const sortedEpics = sortEpicsByPriority(plan.epics)
   const [collapsedEpicKeys, setCollapsedEpicKeys] = useState<Set<string>>(new Set())
+  const allEpicsCollapsed = sortedEpics.length > 0 && sortedEpics.every((epic) => collapsedEpicKeys.has(epic.key))
   const [descriptionEpicKey, setDescriptionEpicKey] = useState<string | null>(null)
   const [noteEpicKey, setNoteEpicKey] = useState<string | null>(null)
   const [refreshingEpicKey, setRefreshingEpicKey] = useState<string | null>(null)
@@ -61,6 +62,10 @@ export const EpicPanel = ({ focusRequest, onLocateSprintStory }: EpicPanelProps)
       }
       return next
     })
+  }
+
+  const toggleAllEpics = () => {
+    setCollapsedEpicKeys(allEpicsCollapsed ? new Set() : new Set(sortedEpics.map((epic) => epic.key)))
   }
 
   const refreshEpic = async (epicKey: string) => {
@@ -124,7 +129,17 @@ export const EpicPanel = ({ focusRequest, onLocateSprintStory }: EpicPanelProps)
     >
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-600">Epic Backlog</h2>
-        <span className="text-xs text-slate-500">{sortedEpics.length} epics</span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-slate-500">{sortedEpics.length} epics</span>
+          <IconButton
+            aria-label={allEpicsCollapsed ? 'Expand all epics' : 'Collapse all epics'}
+            title={allEpicsCollapsed ? 'Expand all epics' : 'Collapse all epics'}
+            className="h-7 w-7"
+            disabled={sortedEpics.length === 0}
+            onClick={toggleAllEpics}
+            icon={allEpicsCollapsed ? <ChevronsUpDown size={16} /> : <ChevronsDownUp size={16} />}
+          />
+        </div>
       </div>
       <div className="grid gap-2">
         {sortedEpics.map((epic) => {
