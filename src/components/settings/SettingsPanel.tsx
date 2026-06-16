@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { CheckCircle2, ChevronDown, ChevronRight, FolderOpen, Loader2, Save } from 'lucide-react'
 import { electronApi } from '../../api/electronApi'
+import type { JiraConfig } from '../../domain/planTypes'
 import { usePlanStore } from '../../stores/planStore'
 import { useUiStore } from '../../stores/uiStore'
 import { DEFAULT_JIRA_HOST_URL } from '../../domain/defaults'
@@ -52,15 +53,13 @@ export const SettingsPanel = () => {
       setMessage('Config loaded.')
     })
 
-  const buildConfig = () => ({
+  const buildConfig = (): JiraConfig => ({
     jiraHostUrl,
     pat,
-    proxy: proxyEnabled || proxyUrl.trim()
-      ? {
-          enabled: proxyEnabled,
-          url: proxyUrl
-        }
-      : undefined
+    proxy: {
+      enabled: proxyEnabled,
+      url: proxyUrl
+    }
   })
 
   const saveConfig = () =>

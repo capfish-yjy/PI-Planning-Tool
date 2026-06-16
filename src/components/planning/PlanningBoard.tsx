@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
-import { DndContext, type DragEndEvent } from '@dnd-kit/core'
+import { DndContext, PointerSensor, type DragEndEvent, useSensor, useSensors } from '@dnd-kit/core'
 import type { Story } from '../../domain/planTypes'
 import { usePlanStore } from '../../stores/planStore'
 import { useUiStore } from '../../stores/uiStore'
@@ -18,6 +18,13 @@ export const PlanningBoard = () => {
   const containerRef = useRef<HTMLElement | null>(null)
   const [backlogWidth, setBacklogWidth] = useState(DEFAULT_BACKLOG_WIDTH)
   const [isResizing, setIsResizing] = useState(false)
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 6
+      }
+    })
+  )
 
   const clampBacklogWidth = (nextWidth: number) => {
     const containerWidth = containerRef.current?.clientWidth ?? 0
@@ -51,6 +58,7 @@ export const PlanningBoard = () => {
 
   const handleDragEnd = (event: DragEndEvent) => {
     const story = event.active.data.current?.story as Story | undefined
+    const sourceSprintId = event.active.data.current?.sourceSprintId as string | undefined
     if (!story) {
       return
     }
@@ -61,8 +69,16 @@ export const PlanningBoard = () => {
     }
 
     const targetId = event.over?.id
-    if (!targetId || targetId === 'backlog') {
+    if (!targetId) {
+      return
+    }
+
+    if (targetId === 'backlog') {
       assignStory(story, null)
+      return
+    }
+
+    if (targetId === sourceSprintId) {
       return
     }
 
@@ -115,7 +131,7 @@ export const PlanningBoard = () => {
   }
 
   return (
-    <DndContext onDragEnd={handleDragEnd}>
+    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <main ref={containerRef} className={`flex min-h-0 flex-1 overflow-hidden ${isResizing ? 'cursor-col-resize' : ''}`}>
         <div className="flex min-w-0 shrink-0" style={{ width: backlogWidth }}>
           <EpicPanel />

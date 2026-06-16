@@ -96,7 +96,7 @@ export const EpicPanel = () => {
   return (
     <section
       ref={setNodeRef}
-      className={`min-h-0 flex-1 overflow-auto border-r border-slate-200 bg-slate-50 p-3 ${isOver ? 'ring-2 ring-slate-400' : ''}`}
+      className={`min-h-0 flex-1 overflow-y-auto overflow-x-hidden border-r border-slate-200 bg-slate-50 p-3 ${isOver ? 'ring-2 ring-slate-400' : ''}`}
     >
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-600">Epic Backlog</h2>

@@ -90,7 +90,8 @@ export const SprintColumn = ({ sprint, stories }: SprintColumnProps) => {
             key={story.key}
             story={story}
             locationLabel={sprint.name}
-            dragSource="none"
+            dragSource="sprint"
+            sourceSprintId={sprint.id}
             onRemoveFromSprint={() => assignStory(story, null)}
           />
         ))}

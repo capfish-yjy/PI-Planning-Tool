@@ -15,7 +15,8 @@ type StoryCardProps = {
   story: Story
   locationLabel?: string
   isPlanned?: boolean
-  dragSource?: 'backlog' | 'none'
+  dragSource?: 'backlog' | 'sprint' | 'none'
+  sourceSprintId?: string
   density?: 'normal' | 'compact'
   onRemoveFromSprint?: () => void
 }
@@ -25,6 +26,7 @@ export const StoryCard = ({
   locationLabel,
   isPlanned = false,
   dragSource = 'backlog',
+  sourceSprintId,
   density = 'normal',
   onRemoveFromSprint
 }: StoryCardProps) => {
@@ -34,12 +36,13 @@ export const StoryCard = ({
   const [isNoteOpen, setIsNoteOpen] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const disabled = !canPlanStory(story)
-  const isDraggable = dragSource === 'backlog'
+  const isDraggable = dragSource !== 'none'
   const isCompact = density === 'compact'
   const hasNote = Boolean(story.localNote?.trim())
+  const draggableId = dragSource === 'sprint' ? `sprint:${sourceSprintId ?? 'unknown'}:${story.key}` : story.key
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id: isDraggable ? story.key : `display-${story.key}`,
-    data: { story },
+    id: isDraggable ? draggableId : `display-${story.key}`,
+    data: { story, source: dragSource, sourceSprintId },
     disabled: disabled || !isDraggable
   })
 
@@ -80,7 +83,9 @@ export const StoryCard = ({
     <article
       ref={isDraggable ? setNodeRef : undefined}
       style={style}
-      className={`relative rounded-md border bg-white shadow-sm ${isCompact ? 'p-2' : 'p-3'} ${isDragging ? 'opacity-60' : ''} ${
+      className={`relative rounded-md border bg-white shadow-sm ${isCompact ? 'p-2' : 'p-3'} ${
+        isDraggable && !disabled ? 'cursor-grab active:cursor-grabbing' : ''
+      } ${isDragging ? 'opacity-60' : ''} ${
         disabled ? 'border-amber-300 bg-amber-50' : isPlanned ? 'border-sky-300 bg-sky-50' : 'border-slate-200'
       }`}
       {...(isDraggable ? listeners : {})}
