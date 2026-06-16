@@ -26,10 +26,12 @@ The current builds are not code-signed or notarized. macOS Gatekeeper or Windows
 
 Requirements:
 
-- Node.js 20 or newer
+- Node.js 20 LTS or 22 LTS
 - npm
 
 If you only run the downloaded release build, you do not need Node.js or npm. These requirements are only needed when running from source.
+
+Node.js 24 is not recommended for this project. It can leave Electron partially installed, for example with `node_modules/electron/dist/Electron.app` present but `node_modules/electron/path.txt` missing, which causes `npm run dev` to fail with `Error: Electron uninstall`.
 
 ### Install Requirements On Windows
 
@@ -155,6 +157,47 @@ Run the desktop app in development mode:
 ```bash
 npm run dev
 ```
+
+### Fix Electron Uninstall Errors
+
+If `npm run dev` fails with `Error: Electron uninstall`, first verify your Node.js version:
+
+```bash
+node -v
+npm -v
+```
+
+Use Node.js 20 LTS or 22 LTS, then reinstall dependencies:
+
+```bash
+rm -rf node_modules
+npm ci --verbose
+npm run dev
+```
+
+If you use `nvm` on macOS:
+
+```bash
+nvm install 22
+nvm use 22
+rm -rf node_modules
+npm ci --verbose
+npm run dev
+```
+
+You can also check whether Electron generated its executable path file:
+
+```bash
+cat node_modules/electron/path.txt
+```
+
+On macOS, it should print:
+
+```text
+Electron.app/Contents/MacOS/Electron
+```
+
+If `Electron.app` exists but `path.txt` is missing, switching to Node.js 20 LTS or 22 LTS and reinstalling with `npm ci --verbose` is the recommended fix.
 
 Build the Electron app:
 
