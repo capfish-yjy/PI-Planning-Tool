@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState, type MouseEvent } from 'react'
 import { useDraggable } from '@dnd-kit/core'
 import { AlertTriangle, GripVertical, Info, RotateCw, X } from 'lucide-react'
 import { electronApi } from '../../api/electronApi'
@@ -18,6 +18,8 @@ type StoryCardProps = {
   dragSource?: 'backlog' | 'sprint' | 'none'
   sourceSprintId?: string
   density?: 'normal' | 'compact'
+  focusNonce?: number
+  onLocateDoubleClick?: () => void
   onRemoveFromSprint?: () => void
 }
 
@@ -28,6 +30,8 @@ export const StoryCard = ({
   dragSource = 'backlog',
   sourceSprintId,
   density = 'normal',
+  focusNonce,
+  onLocateDoubleClick,
   onRemoveFromSprint
 }: StoryCardProps) => {
   const { configPath, refreshStories, updateStoryNote } = usePlanStore()
@@ -35,6 +39,8 @@ export const StoryCard = ({
   const [isDescriptionOpen, setIsDescriptionOpen] = useState(false)
   const [isNoteOpen, setIsNoteOpen] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [isFocusHighlighted, setIsFocusHighlighted] = useState(false)
+  const articleRef = useRef<HTMLElement | null>(null)
   const disabled = !canPlanStory(story)
   const isDraggable = dragSource !== 'none'
   const isCompact = density === 'compact'
@@ -51,6 +57,24 @@ export const StoryCard = ({
         transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`
       }
     : undefined
+
+  useEffect(() => {
+    if (focusNonce === undefined) {
+      return
+    }
+
+    articleRef.current?.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' })
+    setIsFocusHighlighted(true)
+    const timeoutId = window.setTimeout(() => setIsFocusHighlighted(false), 1800)
+    return () => window.clearTimeout(timeoutId)
+  }, [focusNonce])
+
+  const setArticleRef = (node: HTMLElement | null) => {
+    articleRef.current = node
+    if (isDraggable) {
+      setNodeRef(node)
+    }
+  }
 
   const refreshStory = async () => {
     setIsRefreshing(true)
@@ -79,15 +103,35 @@ export const StoryCard = ({
     }
   }
 
+  const handleCardDoubleClick = (event: MouseEvent<HTMLElement>) => {
+    const target = event.target
+    if (!(target instanceof HTMLElement)) {
+      return
+    }
+
+    if (target.closest('button,a,input,select,textarea,[data-ignore-card-dblclick="true"]')) {
+      return
+    }
+
+    onLocateDoubleClick?.()
+  }
+
   return (
     <article
-      ref={isDraggable ? setNodeRef : undefined}
+      ref={setArticleRef}
       style={style}
       className={`relative rounded-md border bg-white shadow-sm ${isCompact ? 'p-2' : 'p-3'} ${
         isDraggable && !disabled ? 'cursor-grab active:cursor-grabbing' : ''
       } ${isDragging ? 'opacity-60' : ''} ${
-        disabled ? 'border-amber-300 bg-amber-50' : isPlanned ? 'border-sky-300 bg-sky-50' : 'border-slate-200'
+        isFocusHighlighted
+          ? 'border-indigo-400 bg-indigo-50 ring-2 ring-indigo-300'
+          : disabled
+            ? 'border-amber-300 bg-amber-50'
+            : isPlanned
+              ? 'border-sky-300 bg-sky-50'
+              : 'border-slate-200'
       }`}
+      onDoubleClick={handleCardDoubleClick}
       {...(isDraggable ? listeners : {})}
       {...(isDraggable ? attributes : {})}
     >
@@ -107,7 +151,10 @@ export const StoryCard = ({
           <div className={`flex flex-wrap items-center ${isCompact ? 'gap-1' : 'gap-2'}`}>
             <span
               className="min-w-0 cursor-pointer font-mono text-xs font-semibold text-slate-700 underline-offset-2 hover:underline"
-              onDoubleClick={openStoryInJira}
+              onDoubleClick={(event) => {
+                event.stopPropagation()
+                openStoryInJira()
+              }}
               title="Double-click to open in Jira"
             >
               {story.key}
