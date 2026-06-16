@@ -4,6 +4,8 @@ PI Planning Assistant is a desktop tool for local PI planning with read-only Jir
 
 It can import Jira Epics and their child Stories/Tasks, arrange Stories into local PI sprints, monitor sprint capacity, track committed Epic completion, save/open local project JSON files, and export CSV or human-readable HTML reports.
 
+For step-by-step usage instructions, see the [English User Manual](docs/USER_MANUAL_EN.md) or [中文用户手册](docs/USER_MANUAL.md).
+
 ## Jira Safety
 
 - Jira integration is read-only.
