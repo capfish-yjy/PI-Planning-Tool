@@ -15,7 +15,8 @@ type StoryCardProps = {
   story: Story
   locationLabel?: string
   isPlanned?: boolean
-  dragSource?: 'backlog' | 'none'
+  dragSource?: 'backlog' | 'sprint' | 'none'
+  sourceSprintId?: string
   density?: 'normal' | 'compact'
   onRemoveFromSprint?: () => void
 }
@@ -25,6 +26,7 @@ export const StoryCard = ({
   locationLabel,
   isPlanned = false,
   dragSource = 'backlog',
+  sourceSprintId,
   density = 'normal',
   onRemoveFromSprint
 }: StoryCardProps) => {
@@ -34,12 +36,13 @@ export const StoryCard = ({
   const [isNoteOpen, setIsNoteOpen] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const disabled = !canPlanStory(story)
-  const isDraggable = dragSource === 'backlog'
+  const isDraggable = dragSource !== 'none'
   const isCompact = density === 'compact'
   const hasNote = Boolean(story.localNote?.trim())
+  const draggableId = dragSource === 'sprint' ? `sprint:${sourceSprintId ?? 'unknown'}:${story.key}` : story.key
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id: isDraggable ? story.key : `display-${story.key}`,
-    data: { story },
+    id: isDraggable ? draggableId : `display-${story.key}`,
+    data: { story, source: dragSource, sourceSprintId },
     disabled: disabled || !isDraggable
   })
 
@@ -83,7 +86,6 @@ export const StoryCard = ({
       className={`relative rounded-md border bg-white shadow-sm ${isCompact ? 'p-2' : 'p-3'} ${isDragging ? 'opacity-60' : ''} ${
         disabled ? 'border-amber-300 bg-amber-50' : isPlanned ? 'border-sky-300 bg-sky-50' : 'border-slate-200'
       }`}
-      {...(isDraggable ? listeners : {})}
       {...(isDraggable ? attributes : {})}
     >
       <DescriptionPopover description={story.description} isOpen={isDescriptionOpen} onClose={() => setIsDescriptionOpen(false)} />
@@ -95,7 +97,12 @@ export const StoryCard = ({
         title={`${story.key} Note`}
       />
       <div tabIndex={0} className={`flex items-start outline-none ${isCompact ? 'gap-1.5' : 'gap-2'}`}>
-        <span className={`flex shrink-0 items-center ${isCompact ? 'h-7' : 'h-8'}`}>
+        <span
+          className={`flex shrink-0 items-center ${isDraggable && !disabled ? 'cursor-grab active:cursor-grabbing' : ''} ${
+            isCompact ? 'h-7' : 'h-8'
+          }`}
+          {...(isDraggable ? listeners : {})}
+        >
           <GripVertical size={isCompact ? 14 : 16} className={disabled || !isDraggable ? 'text-slate-300' : 'text-slate-400'} />
         </span>
         <div className="min-w-0 flex-1">
