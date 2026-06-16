@@ -8,6 +8,7 @@ export const DescriptionPopover = ({ description, isOpen, onClose }: Description
   isOpen ? (
   <div
     tabIndex={0}
+    data-ignore-card-dblclick="true"
     onPointerDown={(event) => event.stopPropagation()}
     onClick={(event) => event.stopPropagation()}
     onKeyDown={(event) => {

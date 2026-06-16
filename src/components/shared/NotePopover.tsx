@@ -29,6 +29,7 @@ export const NotePopover = ({ note, isOpen, onClose, onSave, title }: NotePopove
   return (
     <div
       tabIndex={0}
+      data-ignore-card-dblclick="true"
       onPointerDown={(event) => event.stopPropagation()}
       onClick={(event) => event.stopPropagation()}
       onKeyDown={(event) => {

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import { DndContext, PointerSensor, type DragEndEvent, useSensor, useSensors } from '@dnd-kit/core'
-import type { Story } from '../../domain/planTypes'
+import type { StoryFocusRequest, StoryFocusTarget } from '../../domain/focusTypes'
+import type { IssueKey, Story } from '../../domain/planTypes'
 import { usePlanStore } from '../../stores/planStore'
 import { useUiStore } from '../../stores/uiStore'
 import { EpicPanel } from '../epic/EpicPanel'
@@ -16,8 +17,10 @@ export const PlanningBoard = () => {
   const { assignStory, planFilePath } = usePlanStore()
   const { setError } = useUiStore()
   const containerRef = useRef<HTMLElement | null>(null)
+  const focusNonceRef = useRef(0)
   const [backlogWidth, setBacklogWidth] = useState(DEFAULT_BACKLOG_WIDTH)
   const [isResizing, setIsResizing] = useState(false)
+  const [storyFocusRequest, setStoryFocusRequest] = useState<StoryFocusRequest | null>(null)
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -85,6 +88,11 @@ export const PlanningBoard = () => {
     assignStory(story, String(targetId))
   }
 
+  const requestStoryFocus = (storyKey: IssueKey, target: StoryFocusTarget) => {
+    focusNonceRef.current += 1
+    setStoryFocusRequest({ storyKey, target, nonce: focusNonceRef.current })
+  }
+
   const handleResizePointerDown = (event: PointerEvent<HTMLButtonElement>) => {
     event.preventDefault()
     event.currentTarget.setPointerCapture(event.pointerId)
@@ -134,7 +142,10 @@ export const PlanningBoard = () => {
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <main ref={containerRef} className={`flex min-h-0 flex-1 overflow-hidden ${isResizing ? 'cursor-col-resize' : ''}`}>
         <div className="flex min-w-0 shrink-0" style={{ width: backlogWidth }}>
-          <EpicPanel />
+          <EpicPanel
+            focusRequest={storyFocusRequest?.target === 'backlog' ? storyFocusRequest : null}
+            onLocateSprintStory={(storyKey) => requestStoryFocus(storyKey, 'sprint')}
+          />
         </div>
         <button
           type="button"
@@ -155,7 +166,10 @@ export const PlanningBoard = () => {
           <span className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-slate-300 group-hover:bg-slate-500" />
         </button>
         <div className="flex min-w-[560px] flex-1 overflow-hidden">
-          <SprintBoard />
+          <SprintBoard
+            focusRequest={storyFocusRequest?.target === 'sprint' ? storyFocusRequest : null}
+            onLocateBacklogStory={(storyKey) => requestStoryFocus(storyKey, 'backlog')}
+          />
         </div>
       </main>
     </DndContext>

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Trash2, AlertTriangle } from 'lucide-react'
 import { useDroppable } from '@dnd-kit/core'
-import type { Sprint, Story } from '../../domain/planTypes'
+import type { StoryFocusRequest } from '../../domain/focusTypes'
+import type { IssueKey, Sprint, Story } from '../../domain/planTypes'
 import { getSprintUsage } from '../../domain/capacity'
 import { usePlanStore } from '../../stores/planStore'
 import { Button } from '../shared/Button'
@@ -10,9 +11,11 @@ import { StoryCard } from '../epic/StoryCard'
 type SprintColumnProps = {
   sprint: Sprint
   stories: Story[]
+  focusRequest: StoryFocusRequest | null
+  onLocateBacklogStory: (storyKey: IssueKey) => void
 }
 
-export const SprintColumn = ({ sprint, stories }: SprintColumnProps) => {
+export const SprintColumn = ({ sprint, stories, focusRequest, onLocateBacklogStory }: SprintColumnProps) => {
   const { plan, updateSprint, removeSprint, assignStory } = usePlanStore()
   const usage = getSprintUsage(plan, sprint.id)
   const { setNodeRef, isOver } = useDroppable({ id: sprint.id })
@@ -92,6 +95,8 @@ export const SprintColumn = ({ sprint, stories }: SprintColumnProps) => {
             locationLabel={sprint.name}
             dragSource="sprint"
             sourceSprintId={sprint.id}
+            focusNonce={focusRequest?.storyKey === story.key ? focusRequest.nonce : undefined}
+            onLocateDoubleClick={() => onLocateBacklogStory(story.key)}
             onRemoveFromSprint={() => assignStory(story, null)}
           />
         ))}

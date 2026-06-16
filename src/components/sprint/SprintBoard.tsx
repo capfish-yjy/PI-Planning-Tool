@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Plus, X } from 'lucide-react'
-import type { Sprint } from '../../domain/planTypes'
+import type { StoryFocusRequest } from '../../domain/focusTypes'
+import type { IssueKey, Sprint } from '../../domain/planTypes'
 import { getAllStories } from '../../domain/capacity'
 import { usePlanStore } from '../../stores/planStore'
 import { useUiStore } from '../../stores/uiStore'
@@ -14,6 +15,11 @@ type DraftSprint = Omit<Sprint, 'pointCapacity'> & {
 type DraftPi = {
   startDate: string
   sprintCount: string
+}
+
+type SprintBoardProps = {
+  focusRequest: StoryFocusRequest | null
+  onLocateBacklogStory: (storyKey: IssueKey) => void
 }
 
 const today = () => new Date().toISOString().slice(0, 10)
@@ -75,7 +81,7 @@ const createSprintFromPi = (sprints: Sprint[], startDate: string, index: number)
   }
 }
 
-export const SprintBoard = () => {
+export const SprintBoard = ({ focusRequest, onLocateBacklogStory }: SprintBoardProps) => {
   const { plan, planFilePath, addSprint } = usePlanStore()
   const { setError } = useUiStore()
   const stories = getAllStories(plan)
@@ -232,6 +238,8 @@ export const SprintBoard = () => {
             key={sprint.id}
             sprint={sprint}
             stories={stories.filter((story) => plan.assignments[story.key] === sprint.id)}
+            focusRequest={focusRequest}
+            onLocateBacklogStory={onLocateBacklogStory}
           />
         ))}
       </div>
