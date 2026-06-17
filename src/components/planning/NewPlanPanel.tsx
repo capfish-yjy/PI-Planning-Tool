@@ -49,7 +49,7 @@ export const NewPlanPanel = () => {
   const fetchEpics = () =>
     runSafely('import', async () => {
       if (!planFilePath) {
-        throw new Error('Create a project file before planning.')
+        throw new Error('Create or open a project before planning.')
       }
       if (!configPath) {
         throw new Error('Select a Jira config file first.')

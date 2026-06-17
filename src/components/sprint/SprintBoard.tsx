@@ -90,7 +90,7 @@ export const SprintBoard = ({ focusRequest, onLocateBacklogStory }: SprintBoardP
 
   const startAddingSprint = () => {
     if (!planFilePath) {
-      setError('Create a project file before planning.')
+      setError('Create or open a project before planning.')
       return
     }
     setDraftPi(null)
@@ -99,7 +99,7 @@ export const SprintBoard = ({ focusRequest, onLocateBacklogStory }: SprintBoardP
 
   const startAddingPi = () => {
     if (!planFilePath) {
-      setError('Create a project file before planning.')
+      setError('Create or open a project before planning.')
       return
     }
     setDraftSprint(null)

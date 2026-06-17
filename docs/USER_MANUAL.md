@@ -15,7 +15,7 @@ PI Planning Assistant 是一个桌面端 PI Planning 工具。它从 Jira 只读
 推荐按这个顺序开始：
 
 1. 打开软件。
-2. 点击 `Create Project File`，选择一个位置创建项目计划文件。
+2. 点击 `New Project`，选择一个位置创建新的空白项目计划文件。
 3. 在 Settings 区域创建或打开 Jira config file。
 4. 输入 Jira Host URL 和 Personal Access Token。
 5. 如网络需要代理，展开 `Proxy Settings` 并配置 proxy。
@@ -28,15 +28,17 @@ PI Planning Assistant 是一个桌面端 PI Planning 工具。它从 Jira 只读
 
 ## 3. 顶部文件按钮
 
-### Create Project File
+### New Project
 
-创建当前计划的 Project file。创建后，后续计划变更会自动保存到这个 JSON 文件。
+创建一个新的空白 Project file。创建后，后续计划变更会自动保存到这个 JSON 文件。
 
-在没有 Project file 时，Import Epic、创建 PI/Sprint、拖拽 Story 等规划操作会被阻止，并提示先创建 Project file。
+如果当前已经有计划内容，软件会先确认是否创建新的空白项目。确认后选择保存位置并创建新项目；如果取消确认或取消保存对话框，当前计划不会改变。
 
-### Open JSON
+在没有 Project file 时，Import Epic、创建 PI/Sprint、拖拽 Story 等规划操作会被阻止，并提示先创建或打开 Project。
 
-打开已有 Project file，并恢复之前保存的计划状态，包括：
+### Open Project
+
+打开已有 Project JSON 文件，并恢复之前保存的计划状态，包括：
 
 - Project Key
 - 已导入 Epic 和 Story 快照
