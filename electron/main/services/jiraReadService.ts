@@ -1,5 +1,5 @@
 import { ProxyAgent, type Dispatcher } from 'undici'
-import type { Epic, IssueKey, JiraConfig, Story } from '../../../src/domain/planTypes'
+import type { Epic, EpicCommitment, IssueKey, JiraConfig, Story } from '../../../src/domain/planTypes'
 import type { FetchEpicsResult, JiraFieldMappings, RefreshIssuesResult } from '../../../src/domain/jiraTypes'
 import { loadConfig } from './configService'
 
@@ -143,11 +143,14 @@ const detectFieldMappings = async (config: JiraConfig): Promise<JiraFieldMapping
   const numericalPriorityField =
     configured.numericalPriorityFieldId ??
     fields.find((field) => ['numerical priority', 'numeric priority'].includes(field.name.toLowerCase()))?.id
+  const commitmentField =
+    configured.commitmentFieldId ?? fields.find((field) => ['commitment', 'epic commitment'].includes(field.name.toLowerCase()))?.id
 
   return {
     storyPointsFieldId: storyPointsField,
     epicLinkFieldId: epicLinkField,
-    numericalPriorityFieldId: numericalPriorityField
+    numericalPriorityFieldId: numericalPriorityField,
+    commitmentFieldId: commitmentField
   }
 }
 
@@ -160,7 +163,8 @@ const issueFields = (mappings: JiraFieldMappings) =>
     'parent',
     mappings.storyPointsFieldId,
     mappings.epicLinkFieldId,
-    mappings.numericalPriorityFieldId
+    mappings.numericalPriorityFieldId,
+    mappings.commitmentFieldId
   ]
     .filter(Boolean)
     .join(',')
@@ -198,6 +202,28 @@ const getNumericFieldValue = (value: unknown) => {
   }
 
   return 0
+}
+
+const getCommitmentValue = (value: unknown): EpicCommitment => {
+  const rawValue =
+    value && typeof value === 'object'
+      ? 'name' in value && typeof value.name === 'string'
+        ? value.name
+        : 'value' in value && typeof value.value === 'string'
+          ? value.value
+          : ''
+      : typeof value === 'string'
+        ? value
+        : ''
+
+  const normalized = rawValue.trim().toLowerCase()
+  if (normalized === 'committed') {
+    return 'committed'
+  }
+  if (normalized === 'uncommitted') {
+    return 'uncommitted'
+  }
+  return 'unplanned'
 }
 
 const extractTextFromAdf = (value: unknown): string[] => {
@@ -261,13 +287,14 @@ const getEpicKeyForStory = (issue: JiraIssue, fallbackEpicKey: string, mappings:
 
 const parseEpic = (issue: JiraIssue, stories: Story[], mappings: JiraFieldMappings): Epic => {
   const numericalPriority = mappings.numericalPriorityFieldId ? issue.fields[mappings.numericalPriorityFieldId] : null
+  const commitment = mappings.commitmentFieldId ? issue.fields[mappings.commitmentFieldId] : null
 
   return {
     key: issue.key,
     summary: String(issue.fields.summary ?? ''),
     description: getDescriptionText(issue.fields.description),
     priorityWeight: getNumericFieldValue(numericalPriority),
-    commitment: 'unplanned',
+    commitment: getCommitmentValue(commitment),
     stories
   }
 }
