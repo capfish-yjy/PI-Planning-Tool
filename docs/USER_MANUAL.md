@@ -158,8 +158,11 @@ https://devstack.vwgroup.com/jira/browse/E3AUDEDM-18519
 - Story Points
 - Description
 - Numerical Priority / Priority Weight
+- Epic commitment
 
 状态为 `closed` 的 Story 不会被导入。
+
+如果 Jira 中存在 Epic commitment 字段，软件会读取并显示为 `committed`、`uncommitted` 或 `unplanned`。如果 Jira 中没有该值或无法识别，默认使用 `unplanned`。
 
 ### Refresh
 
@@ -170,6 +173,17 @@ Epic 或 Story 卡片上的 refresh 按钮只刷新对应对象。
 ## 6. Epic Backlog
 
 左侧 `Epic Backlog` 显示所有已导入 Epic 和 Story。
+
+### 搜索 Ticket
+
+Backlog 标题下方可以输入 ticket number 或完整 issue key 搜索已导入的 Epic 或 Story。例如：
+
+```text
+18539
+E3AUDEDM-18539
+```
+
+搜索到 Epic 时，软件会滚动到对应 Epic 并短暂高亮。搜索到 Story 时，软件会自动展开所属 Epic，滚动到对应 Story 并短暂高亮。搜索只在已导入的 Backlog 内容中查找，不会调用 Jira。
 
 ### Epic 排序
 
@@ -259,6 +273,12 @@ Story planned 后不会从 Backlog 消失。它会继续显示在 Epic 下，并
 
 也可以从 Backlog 中同一个 planned Story 拖到另一个 Sprint 重新分配。
 
+### 通过右键菜单移动 Story
+
+当 Sprint 很多或列表很长、不方便拖拽时，可以右键点击可规划的 Story 卡片，在原生菜单中选择 `Move to`，然后选择目标 Sprint。
+
+右键菜单适用于 Backlog 和 Sprint 中的 Story。当前所在 Sprint 不会出现在目标列表中。未估算、不可规划的 Story 不能通过右键菜单分配到 Sprint。
+
 ### 从 Sprint 移除 Story
 
 Sprint 中每个 Story 有移除按钮。点击后，该 Story 会从 Sprint 中移除，并在 Backlog 中恢复为 unplanned。
@@ -284,6 +304,8 @@ Sprint 中每个 Story 有移除按钮。点击后，该 Story 会从 Sprint 中
 - `Autosave failed`
 
 自动保存只写 Project file，不写 Jira config，也不写回 Jira。
+
+成功操作的绿色通知会在短时间后自动关闭；错误通知会保留在界面上，直到用户手动关闭。
 
 ## 11. 常见问题
 

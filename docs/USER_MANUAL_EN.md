@@ -158,8 +158,11 @@ After clicking `Import`, the app reads the following data from Jira:
 - Story Points
 - Description
 - Numerical Priority / Priority Weight
+- Epic commitment
 
 Stories with status `closed` are not imported.
+
+If Jira has an Epic commitment field, the app reads it and displays it as `committed`, `uncommitted`, or `unplanned`. If Jira has no value or the value cannot be recognized, the app uses `unplanned` by default.
 
 ### Refresh
 
@@ -170,6 +173,17 @@ Refresh buttons on individual Epic or Story cards refresh only that item.
 ## 6. Epic Backlog
 
 The left `Epic Backlog` panel shows all imported Epics and Stories.
+
+### Search Tickets
+
+Under the Backlog title, you can search imported Epics or Stories by ticket number or full issue key. Examples:
+
+```text
+18539
+E3AUDEDM-18539
+```
+
+When an Epic is found, the app scrolls to that Epic and briefly highlights it. When a Story is found, the app expands its parent Epic if needed, scrolls to the Story, and briefly highlights it. Search is local-only across imported Backlog content and does not call Jira.
 
 ### Epic Sorting
 
@@ -259,6 +273,12 @@ You can drag a Story directly from one Sprint to another Sprint.
 
 You can also drag the same planned Story from the Backlog to another Sprint to reassign it.
 
+### Move Story With Right-Click Menu
+
+When there are many Sprints or long Story lists, right-click a plannable Story card, choose `Move to` in the native context menu, then choose the target Sprint.
+
+The right-click menu works for Stories in both Backlog and Sprint. The Story's current Sprint is hidden from the target list. Unestimated or non-plannable Stories cannot be assigned to a Sprint from this menu.
+
 ### Remove A Story From Sprint
 
 Each Story in a Sprint has a remove button. Clicking it removes the Story from the Sprint and returns it to unplanned status in the Backlog.
@@ -284,6 +304,8 @@ The status bar may show:
 - `Autosave failed`
 
 Autosave writes only the Project file. It does not write the Jira config and does not write anything back to Jira.
+
+Green success notifications close automatically after a short time. Error notifications stay visible until the user closes them manually.
 
 ## 11. FAQ
 
