@@ -25,7 +25,7 @@ type EpicPanelProps = {
 }
 
 export const EpicPanel = ({ focusRequest, onLocateSprintStory }: EpicPanelProps) => {
-  const { plan, configPath, importEpics, updateEpic, removeEpic, updateEpicNote } = usePlanStore()
+  const { plan, configPath, importEpics, updateEpic, removeEpic, updateEpicNote, assignStory } = usePlanStore()
   const { setMessage, setError } = useUiStore()
   const { setNodeRef, isOver } = useDroppable({ id: 'backlog' })
   const sortedEpics = sortEpicsByPriority(plan.epics)
@@ -349,6 +349,9 @@ export const EpicPanel = ({ focusRequest, onLocateSprintStory }: EpicPanelProps)
                         dragSource="backlog"
                         density="compact"
                         locationLabel={assignedSprint ? assignedSprint.name : undefined}
+                        currentSprintId={assignedSprintId}
+                        moveMenuSprints={plan.sprints}
+                        onMoveToSprint={(sprintId) => assignStory(story, sprintId)}
                         focusNonce={
                           searchStoryFocus?.storyKey === story.key
                             ? searchStoryFocus.nonce

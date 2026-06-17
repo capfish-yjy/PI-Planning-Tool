@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { ConfigSelectMode, ElectronApi } from '../main/types/ipc'
+import type { ConfigSelectMode, ElectronApi, StoryMoveMenuInput } from '../main/types/ipc'
 import type { FetchEpicsInput, RefreshIssuesInput, TestConnectionInput } from '../../src/domain/jiraTypes'
 import type { JiraConfig, Plan } from '../../src/domain/planTypes'
 
@@ -22,6 +22,9 @@ const electronApi: ElectronApi = {
     importCsv: () => ipcRenderer.invoke('file:importCsv'),
     exportCsv: (plan: Plan) => ipcRenderer.invoke('file:exportCsv', plan),
     exportHtml: (plan: Plan, configPath?: string) => ipcRenderer.invoke('file:exportHtml', plan, configPath)
+  },
+  ui: {
+    showStoryMoveMenu: (input: StoryMoveMenuInput) => ipcRenderer.invoke('ui:showStoryMoveMenu', input)
   }
 }
 
