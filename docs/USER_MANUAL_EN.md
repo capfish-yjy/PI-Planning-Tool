@@ -32,7 +32,11 @@ Recommended starting flow:
 
 Creates a new empty Project file. After it is created, later planning changes are automatically saved to this JSON file.
 
-If the current project already has planning data, the app asks for confirmation before creating a new empty project. After confirmation, choose where to save it. If you cancel the confirmation or save dialog, the current plan is not changed.
+If the current project already has planning data, the app asks for confirmation before closing the current project and creating a new empty project. Before creating a new project, it is recommended to confirm that the status bar shows `Autosaved`.
+
+If autosave is still running, the app blocks creating a new project until autosave finishes. If autosave failed, the app warns that continuing may leave recent changes unsaved.
+
+After confirmation, choose where to save the new project. If you cancel the confirmation or save dialog, the current plan is not changed.
 
 Without a Project file, planning actions such as importing Epics, creating PI/Sprints, and dragging Stories are blocked. The app will ask you to create or open a Project first.
 
@@ -298,6 +302,8 @@ Note: double-clicking the Story key opens Jira and does not trigger quick locati
 ## 10. Autosave
 
 After a Project file is created, the app automatically saves planning changes to that Project file.
+
+You usually do not need to save manually. After creating or opening a Project, planning changes are autosaved to the current Project file.
 
 The status bar may show:
 

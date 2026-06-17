@@ -32,7 +32,11 @@ PI Planning Assistant 是一个桌面端 PI Planning 工具。它从 Jira 只读
 
 创建一个新的空白 Project file。创建后，后续计划变更会自动保存到这个 JSON 文件。
 
-如果当前已经有计划内容，软件会先确认是否创建新的空白项目。确认后选择保存位置并创建新项目；如果取消确认或取消保存对话框，当前计划不会改变。
+如果当前已经有计划内容，软件会先确认是否关闭当前项目并创建新的空白项目。创建新项目前建议确认状态栏显示 `Autosaved`。
+
+如果 autosave 正在运行，软件会阻止创建新项目，直到 autosave 完成。如果 autosave 失败，软件会提示继续创建新项目可能导致最近修改没有保存。
+
+确认后选择保存位置并创建新项目；如果取消确认或取消保存对话框，当前计划不会改变。
 
 在没有 Project file 时，Import Epic、创建 PI/Sprint、拖拽 Story 等规划操作会被阻止，并提示先创建或打开 Project。
 
@@ -298,6 +302,8 @@ Sprint 中每个 Story 有移除按钮。点击后，该 Story 会从 Sprint 中
 ## 10. 自动保存
 
 创建 Project file 后，计划软件会自动保存到当前 Project file。
+
+通常不需要手动 Save。创建或打开 Project 后，计划修改会自动保存到当前 Project file。
 
 状态栏会显示：
 

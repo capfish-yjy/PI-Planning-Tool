@@ -72,11 +72,20 @@ export const App = () => {
 
   const createNewProject = () =>
     runFileAction(async () => {
-      if (
-        hasCurrentPlanningData &&
-        !window.confirm('Create a new empty project? Unsaved planning changes in the current project will be replaced.')
-      ) {
-        return null
+      if (hasCurrentPlanningData) {
+        if (autoSaveStatus === 'saving') {
+          setError('Autosave is still running. Wait until it finishes before creating a new project.')
+          return null
+        }
+
+        const confirmMessage =
+          autoSaveStatus === 'failed'
+            ? 'Autosave failed. Creating a new project may leave recent changes unsaved. Continue?'
+            : 'Create a new empty project? Your current project will be closed. Make sure autosave shows "Autosaved" before continuing.'
+
+        if (!window.confirm(confirmMessage)) {
+          return null
+        }
       }
 
       const emptyPlan = createEmptyPlan()
