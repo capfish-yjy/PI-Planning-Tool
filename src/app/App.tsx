@@ -9,6 +9,8 @@ import { PlanningBoard } from '../components/planning/PlanningBoard'
 import { SettingsPanel } from '../components/settings/SettingsPanel'
 import { Button } from '../components/shared/Button'
 
+const SUCCESS_NOTIFICATION_TIMEOUT_MS = 2500
+
 export const App = () => {
   const { plan, setPlan, planFilePath, setPlanFilePath, configPath } = usePlanStore()
   const { message, error, setMessage, setError, clearStatus } = useUiStore()
@@ -48,7 +50,7 @@ export const App = () => {
       return
     }
 
-    const timeoutId = window.setTimeout(clearStatus, 5000)
+    const timeoutId = window.setTimeout(clearStatus, SUCCESS_NOTIFICATION_TIMEOUT_MS)
     return () => window.clearTimeout(timeoutId)
   }, [message, clearStatus])
 
