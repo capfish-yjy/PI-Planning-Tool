@@ -73,17 +73,20 @@ export const App = () => {
   const createNewProject = () =>
     runFileAction(async () => {
       if (hasCurrentPlanningData) {
-        if (autoSaveStatus === 'saving') {
-          setError('Autosave is still running. Wait until it finishes before creating a new project.')
-          return null
-        }
-
-        const confirmMessage =
-          autoSaveStatus === 'failed'
-            ? 'Autosave failed. Creating a new project may leave recent changes unsaved. Continue?'
-            : 'Create a new empty project? Your current project will be closed. Make sure autosave shows "Autosaved" before continuing.'
-
-        if (!window.confirm(confirmMessage)) {
+        if (planFilePath) {
+          try {
+            await electronApi.files.savePlanToPath(planFilePath, plan)
+            lastAutoSavedPayload.current = JSON.stringify(plan)
+            setAutoSaveStatus('saved')
+          } catch {
+            setAutoSaveStatus('failed')
+            if (!window.confirm('Current project could not be saved. Creating a new project may lose recent changes. Continue?')) {
+              return null
+            }
+          }
+        } else if (
+          !window.confirm('Current project has not been saved to a project file. Creating a new project will discard it. Continue?')
+        ) {
           return null
         }
       }
@@ -97,6 +100,7 @@ export const App = () => {
       setPlan(emptyPlan)
       setPlanFilePath(filePath)
       lastAutoSavedPayload.current = JSON.stringify(emptyPlan)
+      setAutoSaveStatus('saved')
       return filePath
     }, 'Project created')
 
