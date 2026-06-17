@@ -41,7 +41,6 @@ const mergeEpicFromJira = (existingEpic: Epic | undefined, incomingEpic: Epic): 
 
   return {
     ...incomingEpic,
-    commitment: existingEpic?.commitment ?? incomingEpic.commitment,
     localNote: existingEpic?.localNote ?? incomingEpic.localNote,
     stories: incomingEpic.stories.map((story) => mergeStoryFromJira(existingStories.get(story.key), story, incomingEpic.key))
   }

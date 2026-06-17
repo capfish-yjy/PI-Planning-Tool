@@ -56,6 +56,7 @@ export type JiraConfig = {
     storyPointsFieldId?: string
     epicLinkFieldId?: string
     numericalPriorityFieldId?: string
+    commitmentFieldId?: string
   }
 }
 
