@@ -3,6 +3,7 @@ import { app, BrowserWindow } from 'electron'
 import { registerConfigIpc } from './ipc/configIpc'
 import { registerFileIpc } from './ipc/fileIpc'
 import { registerJiraIpc } from './ipc/jiraIpc'
+import { registerUiIpc } from './ipc/uiIpc'
 
 const createWindow = () => {
   const mainWindow = new BrowserWindow({
@@ -30,6 +31,7 @@ app.whenReady().then(() => {
   registerConfigIpc()
   registerJiraIpc()
   registerFileIpc()
+  registerUiIpc()
   createWindow()
 
   app.on('activate', () => {

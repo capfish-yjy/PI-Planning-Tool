@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type MouseEvent } from 'react'
 import { useDraggable } from '@dnd-kit/core'
 import { AlertTriangle, GripVertical, Info, RotateCw, X } from 'lucide-react'
 import { electronApi } from '../../api/electronApi'
-import type { Story } from '../../domain/planTypes'
+import type { Sprint, Story } from '../../domain/planTypes'
 import { canPlanStory } from '../../domain/planningRules'
 import { usePlanStore } from '../../stores/planStore'
 import { useUiStore } from '../../stores/uiStore'
@@ -19,6 +19,9 @@ type StoryCardProps = {
   sourceSprintId?: string
   density?: 'normal' | 'compact'
   focusNonce?: number
+  moveMenuSprints?: Sprint[]
+  currentSprintId?: string | null
+  onMoveToSprint?: (sprintId: string) => void
   onLocateDoubleClick?: () => void
   onRemoveFromSprint?: () => void
 }
@@ -31,6 +34,9 @@ export const StoryCard = ({
   sourceSprintId,
   density = 'normal',
   focusNonce,
+  moveMenuSprints = [],
+  currentSprintId,
+  onMoveToSprint,
   onLocateDoubleClick,
   onRemoveFromSprint
 }: StoryCardProps) => {
@@ -116,6 +122,46 @@ export const StoryCard = ({
     onLocateDoubleClick?.()
   }
 
+  const handleContextMenu = async (event: MouseEvent<HTMLElement>) => {
+    const target = event.target
+    if (!(target instanceof HTMLElement)) {
+      return
+    }
+
+    if (target.closest('button,a,input,select,textarea,[data-ignore-card-dblclick="true"]')) {
+      return
+    }
+
+    event.preventDefault()
+    event.stopPropagation()
+
+    if (disabled || !onMoveToSprint) {
+      return
+    }
+
+    const targetSprints = moveMenuSprints.filter((sprint) => sprint.id !== currentSprintId)
+    if (targetSprints.length === 0) {
+      setError('No other sprint available for this story.')
+      return
+    }
+
+    try {
+      const sprintId = await electronApi.ui.showStoryMoveMenu({
+        storyKey: story.key,
+        currentSprintId,
+        sprints: moveMenuSprints.map((sprint) => ({
+          id: sprint.id,
+          name: sprint.name
+        }))
+      })
+      if (sprintId) {
+        onMoveToSprint(sprintId)
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : `Unable to move ${story.key}.`)
+    }
+  }
+
   return (
     <article
       ref={setArticleRef}
@@ -132,6 +178,7 @@ export const StoryCard = ({
               : 'border-slate-200'
       }`}
       onDoubleClick={handleCardDoubleClick}
+      onContextMenu={handleContextMenu}
       {...(isDraggable ? listeners : {})}
       {...(isDraggable ? attributes : {})}
     >

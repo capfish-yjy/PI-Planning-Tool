@@ -95,6 +95,9 @@ export const SprintColumn = ({ sprint, stories, focusRequest, onLocateBacklogSto
             locationLabel={sprint.name}
             dragSource="sprint"
             sourceSprintId={sprint.id}
+            currentSprintId={sprint.id}
+            moveMenuSprints={plan.sprints}
+            onMoveToSprint={(sprintId) => assignStory(story, sprintId)}
             focusNonce={focusRequest?.storyKey === story.key ? focusRequest.nonce : undefined}
             onLocateDoubleClick={() => onLocateBacklogStory(story.key)}
             onRemoveFromSprint={() => assignStory(story, null)}

@@ -3,6 +3,17 @@ import type { JiraConfig, Plan } from '../../../src/domain/planTypes'
 
 export type ConfigSelectMode = 'open' | 'create'
 
+export type StoryMoveMenuSprint = {
+  id: string
+  name: string
+}
+
+export type StoryMoveMenuInput = {
+  storyKey: string
+  currentSprintId?: string | null
+  sprints: StoryMoveMenuSprint[]
+}
+
 export type ConfigApi = {
   selectFile: (mode: ConfigSelectMode) => Promise<string | null>
   load: (configPath: string) => Promise<JiraConfig>
@@ -25,8 +36,13 @@ export type FileApi = {
   exportHtml: (plan: Plan, configPath?: string) => Promise<string | null>
 }
 
+export type UiApi = {
+  showStoryMoveMenu: (input: StoryMoveMenuInput) => Promise<string | null>
+}
+
 export type ElectronApi = {
   config: ConfigApi
   jira: JiraApi
   files: FileApi
+  ui: UiApi
 }
