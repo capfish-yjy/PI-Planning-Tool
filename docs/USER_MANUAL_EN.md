@@ -15,7 +15,7 @@ PI Planning Assistant is a desktop PI planning tool. It imports Jira Epics and t
 Recommended starting flow:
 
 1. Open the app.
-2. Click `Create Project File` and choose where to save the project planning file.
+2. Click `New Project` and choose where to save the new empty project planning file.
 3. In the Settings area, create or open a Jira config file.
 4. Enter the Jira Host URL and Personal Access Token.
 5. If your network requires a proxy, expand `Proxy Settings` and configure the proxy.
@@ -28,15 +28,21 @@ Recommended starting flow:
 
 ## 3. Top File Buttons
 
-### Create Project File
+### New Project
 
-Creates the Project file for the current plan. After it is created, later planning changes are automatically saved to this JSON file.
+Creates a new empty Project file. After it is created, later planning changes are automatically saved to this JSON file.
 
-Without a Project file, planning actions such as importing Epics, creating PI/Sprints, and dragging Stories are blocked. The app will ask you to create a Project file first.
+If the current project already has planning data and has a Project file, the app first tries to save the current Project before creating a new empty project.
 
-### Open JSON
+If saving the current Project fails, the app warns that continuing may leave recent changes unsaved. If the current plan has no Project file yet, the app warns that creating a new project will discard the current plan.
 
-Opens an existing Project file and restores the saved planning state, including:
+After confirmation, choose where to save the new project. If you cancel the confirmation or save dialog, the current plan is not changed.
+
+Without a Project file, planning actions such as importing Epics, creating PI/Sprints, and dragging Stories are blocked. The app will ask you to create or open a Project first.
+
+### Open Project
+
+Opens an existing Project JSON file and restores the saved planning state, including:
 
 - Project Key
 - Imported Epic and Story snapshots
@@ -296,6 +302,8 @@ Note: double-clicking the Story key opens Jira and does not trigger quick locati
 ## 10. Autosave
 
 After a Project file is created, the app automatically saves planning changes to that Project file.
+
+You usually do not need to save manually. After creating or opening a Project, planning changes are autosaved to the current Project file. When you click `New Project`, the app also tries to save the current Project first.
 
 The status bar may show:
 

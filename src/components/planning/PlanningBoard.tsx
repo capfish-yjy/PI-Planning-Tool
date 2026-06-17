@@ -67,7 +67,7 @@ export const PlanningBoard = () => {
     }
 
     if (!planFilePath) {
-      setError('Create a project file before planning.')
+      setError('Create or open a project before planning.')
       return
     }
 

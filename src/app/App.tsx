@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Download, FileInput, FolderOpen, Info, Save, X } from 'lucide-react'
 import { electronApi } from '../api/electronApi'
 import { getPlanProgress } from '../domain/capacity'
+import { createEmptyPlan } from '../domain/planTypes'
 import { usePlanStore } from '../stores/planStore'
 import { useUiStore } from '../stores/uiStore'
 import { NewPlanPanel } from '../components/planning/NewPlanPanel'
@@ -18,6 +19,10 @@ export const App = () => {
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle')
   const lastAutoSavedPayload = useRef('')
   const planFileName = useMemo(() => planFilePath.split(/[\\/]/).pop() || '', [planFilePath])
+  const hasCurrentPlanningData = useMemo(
+    () => Boolean(planFilePath || plan.epics.length || plan.sprints.length || Object.keys(plan.assignments).length),
+    [plan.assignments, plan.epics.length, plan.sprints.length, planFilePath]
+  )
 
   useEffect(() => {
     if (!planFilePath) {
@@ -65,6 +70,40 @@ export const App = () => {
     }
   }
 
+  const createNewProject = () =>
+    runFileAction(async () => {
+      if (hasCurrentPlanningData) {
+        if (planFilePath) {
+          try {
+            await electronApi.files.savePlanToPath(planFilePath, plan)
+            lastAutoSavedPayload.current = JSON.stringify(plan)
+            setAutoSaveStatus('saved')
+          } catch {
+            setAutoSaveStatus('failed')
+            if (!window.confirm('Current project could not be saved. Creating a new project may lose recent changes. Continue?')) {
+              return null
+            }
+          }
+        } else if (
+          !window.confirm('Current project has not been saved to a project file. Creating a new project will discard it. Continue?')
+        ) {
+          return null
+        }
+      }
+
+      const emptyPlan = createEmptyPlan()
+      const filePath = await electronApi.files.savePlan(emptyPlan)
+      if (!filePath) {
+        return null
+      }
+
+      setPlan(emptyPlan)
+      setPlanFilePath(filePath)
+      lastAutoSavedPayload.current = JSON.stringify(emptyPlan)
+      setAutoSaveStatus('saved')
+      return filePath
+    }, 'Project created')
+
   return (
     <div className="flex h-screen flex-col bg-slate-100 text-slate-900">
       <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4">
@@ -78,20 +117,8 @@ export const App = () => {
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            onClick={() =>
-              runFileAction(async () => {
-                const filePath = await electronApi.files.savePlan(plan)
-                if (filePath) {
-                  setPlanFilePath(filePath)
-                  lastAutoSavedPayload.current = JSON.stringify(plan)
-                }
-                return filePath
-              }, 'Project file created')
-            }
-            icon={<Save size={16} />}
-          >
-            Create Project File
+          <Button onClick={createNewProject} icon={<Save size={16} />}>
+            New Project
           </Button>
           <Button
             onClick={() =>
@@ -101,14 +128,14 @@ export const App = () => {
                   setPlan(openedProject.plan)
                   setPlanFilePath(openedProject.filePath)
                   lastAutoSavedPayload.current = JSON.stringify(openedProject.plan)
-                  return 'opened'
+                  return undefined
                 }
                 return null
-              }, 'Plan opened')
+              }, 'Project opened')
             }
             icon={<FolderOpen size={16} />}
           >
-            Open JSON
+            Open Project
           </Button>
           <Button
             onClick={() =>
