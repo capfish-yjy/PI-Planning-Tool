@@ -30,6 +30,36 @@ const normalizeNote = (note: string) => {
   return trimmed ? trimmed : undefined
 }
 
+const mergeStoryFromJira = (existingStory: Story | undefined, incomingStory: Story, epicKey: string): Story => ({
+  ...incomingStory,
+  epicKey: incomingStory.epicKey || existingStory?.epicKey || epicKey,
+  localNote: existingStory?.localNote ?? incomingStory.localNote
+})
+
+const mergeEpicFromJira = (existingEpic: Epic | undefined, incomingEpic: Epic): Epic => {
+  const existingStories = new Map(existingEpic?.stories.map((story) => [story.key, story]) ?? [])
+
+  return {
+    ...incomingEpic,
+    commitment: existingEpic?.commitment ?? incomingEpic.commitment,
+    localNote: existingEpic?.localNote ?? incomingEpic.localNote,
+    stories: incomingEpic.stories.map((story) => mergeStoryFromJira(existingStories.get(story.key), story, incomingEpic.key))
+  }
+}
+
+const ensureAssignmentsForStories = (assignments: Plan['assignments'], stories: Story[]) => {
+  const nextAssignments = { ...assignments }
+  for (const story of stories) {
+    nextAssignments[story.key] = nextAssignments[story.key] ?? null
+  }
+  return nextAssignments
+}
+
+const cleanAssignmentsForActiveStories = (assignments: Plan['assignments'], activeStoryKeys: Set<string>) =>
+  Object.fromEntries(Object.entries(assignments).filter(([storyKey]) => activeStoryKeys.has(storyKey)))
+
+const getActiveStoryKeys = (epics: Epic[]) => new Set(epics.flatMap((epic) => epic.stories.map((story) => story.key)))
+
 export const usePlanStore = create<PlanStore>((set) => ({
   plan: createEmptyPlan(),
   configPath: '',
@@ -46,32 +76,16 @@ export const usePlanStore = create<PlanStore>((set) => ({
     })),
   importEpics: (projectKey, epics) =>
     set((state) => {
-      const assignments = { ...state.plan.assignments }
-      for (const story of epics.flatMap((epic) => epic.stories)) {
-        assignments[story.key] = assignments[story.key] ?? null
-      }
       const existingEpics = new Map(state.plan.epics.map((epic) => [epic.key, epic]))
       const mergedEpics = new Map(existingEpics)
 
       for (const epic of epics) {
-        const existingEpic = existingEpics.get(epic.key)
-        const existingStories = new Map(existingEpic?.stories.map((story) => [story.key, story]) ?? [])
-        mergedEpics.set(epic.key, {
-          ...epic,
-          commitment: existingEpic?.commitment ?? epic.commitment,
-          localNote: existingEpic?.localNote ?? epic.localNote,
-          stories: epic.stories.map((story) => ({
-            ...story,
-            localNote: existingStories.get(story.key)?.localNote ?? story.localNote
-          }))
-        })
+        mergedEpics.set(epic.key, mergeEpicFromJira(existingEpics.get(epic.key), epic))
       }
 
       const nextEpics = [...mergedEpics.values()]
-      const activeStoryKeys = new Set(nextEpics.flatMap((epic) => epic.stories.map((story) => story.key)))
-      const cleanedAssignments = Object.fromEntries(
-        Object.entries(assignments).filter(([storyKey]) => activeStoryKeys.has(storyKey))
-      )
+      const assignmentsWithNewStories = ensureAssignmentsForStories(state.plan.assignments, epics.flatMap((epic) => epic.stories))
+      const cleanedAssignments = cleanAssignmentsForActiveStories(assignmentsWithNewStories, getActiveStoryKeys(nextEpics))
 
       return {
         plan: touchPlan({
@@ -176,9 +190,7 @@ export const usePlanStore = create<PlanStore>((set) => ({
             ...epic,
             stories: epic.stories.map((story) => {
               const refreshed = refreshedByKey.get(story.key)
-              return refreshed
-                ? { ...story, ...refreshed, epicKey: story.epicKey || epic.key, localNote: story.localNote }
-                : story
+              return refreshed ? mergeStoryFromJira(story, refreshed, epic.key) : story
             })
           }))
         })
