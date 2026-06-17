@@ -1,6 +1,6 @@
-import { useEffect, useState, type ChangeEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react'
 import { useDroppable } from '@dnd-kit/core'
-import { ChevronDown, ChevronRight, ChevronsDownUp, ChevronsUpDown, Info, RotateCw, Trash2 } from 'lucide-react'
+import { ChevronDown, ChevronRight, ChevronsDownUp, ChevronsUpDown, Info, RotateCw, Search, Trash2 } from 'lucide-react'
 import { electronApi } from '../../api/electronApi'
 import type { StoryFocusRequest } from '../../domain/focusTypes'
 import type { IssueKey } from '../../domain/planTypes'
@@ -29,8 +29,13 @@ export const EpicPanel = ({ focusRequest, onLocateSprintStory }: EpicPanelProps)
   const { setMessage, setError } = useUiStore()
   const { setNodeRef, isOver } = useDroppable({ id: 'backlog' })
   const sortedEpics = sortEpicsByPriority(plan.epics)
+  const epicRefs = useRef<Record<IssueKey, HTMLElement | null>>({})
+  const searchNonceRef = useRef(0)
   const [collapsedEpicKeys, setCollapsedEpicKeys] = useState<Set<string>>(new Set())
   const allEpicsCollapsed = sortedEpics.length > 0 && sortedEpics.every((epic) => collapsedEpicKeys.has(epic.key))
+  const [searchValue, setSearchValue] = useState('')
+  const [focusedEpicKey, setFocusedEpicKey] = useState<IssueKey | null>(null)
+  const [searchStoryFocus, setSearchStoryFocus] = useState<{ storyKey: IssueKey; nonce: number } | null>(null)
   const [descriptionEpicKey, setDescriptionEpicKey] = useState<string | null>(null)
   const [noteEpicKey, setNoteEpicKey] = useState<string | null>(null)
   const [refreshingEpicKey, setRefreshingEpicKey] = useState<string | null>(null)
@@ -66,6 +71,67 @@ export const EpicPanel = ({ focusRequest, onLocateSprintStory }: EpicPanelProps)
 
   const toggleAllEpics = () => {
     setCollapsedEpicKeys(allEpicsCollapsed ? new Set() : new Set(sortedEpics.map((epic) => epic.key)))
+  }
+
+  const normalizeSearchKey = (value: string) => {
+    const normalized = value.trim().toUpperCase()
+    if (!normalized) {
+      return ''
+    }
+
+    if (/^[A-Z][A-Z0-9]+-\d+$/.test(normalized)) {
+      return normalized
+    }
+
+    const numberMatch = normalized.match(/\d+/)
+    return numberMatch && plan.projectKey ? `${plan.projectKey.toUpperCase()}-${numberMatch[0]}` : normalized
+  }
+
+  const focusEpic = (epicKey: IssueKey) => {
+    setFocusedEpicKey(epicKey)
+    window.setTimeout(() => {
+      epicRefs.current[epicKey]?.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' })
+    }, 0)
+    window.setTimeout(() => setFocusedEpicKey((current) => (current === epicKey ? null : current)), 1800)
+  }
+
+  const focusStory = (storyKey: IssueKey, epicKey: IssueKey) => {
+    setCollapsedEpicKeys((current) => {
+      const next = new Set(current)
+      next.delete(epicKey)
+      return next
+    })
+    searchNonceRef.current += 1
+    setSearchStoryFocus({ storyKey, nonce: searchNonceRef.current })
+  }
+
+  const searchBacklogTicket = () => {
+    const targetKey = normalizeSearchKey(searchValue)
+    if (!targetKey) {
+      return
+    }
+
+    const targetEpic = sortedEpics.find((epic) => epic.key.toUpperCase() === targetKey)
+    if (targetEpic) {
+      focusEpic(targetEpic.key)
+      return
+    }
+
+    for (const epic of sortedEpics) {
+      const targetStory = epic.stories.find((story) => story.key.toUpperCase() === targetKey)
+      if (targetStory) {
+        focusStory(targetStory.key, epic.key)
+        return
+      }
+    }
+
+    setError('Ticket not found in imported backlog.')
+  }
+
+  const handleSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      searchBacklogTicket()
+    }
   }
 
   const refreshEpic = async (epicKey: string) => {
@@ -141,6 +207,22 @@ export const EpicPanel = ({ focusRequest, onLocateSprintStory }: EpicPanelProps)
           />
         </div>
       </div>
+      <div className="mb-2 flex items-center gap-1.5">
+        <input
+          value={searchValue}
+          onChange={(event) => setSearchValue(event.target.value)}
+          onKeyDown={handleSearchKeyDown}
+          placeholder="Search ticket number or key"
+          className="h-8 min-w-0 flex-1 rounded-md border border-slate-300 px-2 text-xs text-slate-800 placeholder:text-slate-400"
+        />
+        <IconButton
+          aria-label="Search imported backlog ticket"
+          title="Search imported backlog ticket"
+          className="h-8 w-8"
+          onClick={searchBacklogTicket}
+          icon={<Search size={16} />}
+        />
+      </div>
       <div className="grid gap-2">
         {sortedEpics.map((epic) => {
           const color = getEpicPlanningColor(epic, plan.assignments)
@@ -151,8 +233,17 @@ export const EpicPanel = ({ focusRequest, onLocateSprintStory }: EpicPanelProps)
           const isComplete = isEpicFullyPlanned(epic, plan.assignments)
           const isRefreshing = refreshingEpicKey === epic.key
           const hasNote = Boolean(epic.localNote?.trim())
+          const isEpicFocused = focusedEpicKey === epic.key
           return (
-            <article key={epic.key} className={`relative rounded-md border p-2 ${colorClasses[color]}`}>
+            <article
+              key={epic.key}
+              ref={(node) => {
+                epicRefs.current[epic.key] = node
+              }}
+              className={`relative rounded-md border p-2 ${
+                isEpicFocused ? 'border-indigo-400 bg-indigo-50 ring-2 ring-indigo-300' : colorClasses[color]
+              }`}
+            >
               <DescriptionPopover description={epic.description} isOpen={isDescriptionOpen} onClose={() => setDescriptionEpicKey(null)} />
               <NotePopover
                 note={epic.localNote}
@@ -258,7 +349,13 @@ export const EpicPanel = ({ focusRequest, onLocateSprintStory }: EpicPanelProps)
                         dragSource="backlog"
                         density="compact"
                         locationLabel={assignedSprint ? assignedSprint.name : undefined}
-                        focusNonce={focusRequest?.storyKey === story.key ? focusRequest.nonce : undefined}
+                        focusNonce={
+                          searchStoryFocus?.storyKey === story.key
+                            ? searchStoryFocus.nonce
+                            : focusRequest?.storyKey === story.key
+                              ? focusRequest.nonce
+                              : undefined
+                        }
                         onLocateDoubleClick={assignedSprint ? () => onLocateSprintStory(story.key) : undefined}
                       />
                     )
